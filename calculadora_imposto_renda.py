@@ -6,6 +6,7 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 import os
+import getpass  # Módulo para pedir senha de forma segura
 
 # Função para calcular o imposto de renda individual
 def calcular_imposto_renda(renda_anual):
@@ -21,10 +22,10 @@ def calcular_imposto_renda(renda_anual):
         return (renda_anual - 55976.16) * 0.275 + 4220.36
 
 # Função para gerar o gráfico de pizza usando pandas e matplotlib
-def gerar_grafico_pizza(rendas, impostos):
+def gerar_grafico_pizza(nomes, impostos):
     # Criando um DataFrame com pandas
     df = pd.DataFrame({
-        'Pessoas': [f'Pessoa {i+1}' for i in range(len(rendas))],
+        'Pessoas': nomes,
         'Imposto': impostos
     })
 
@@ -37,9 +38,7 @@ def gerar_grafico_pizza(rendas, impostos):
     plt.show()
 
 # Função para enviar o e-mail com o gráfico anexo
-def enviar_email(com_destinatario, arquivo_anexo):
-    from_email = 'sousaluishenrique20@gmail.com'
-    from_password = 'sua_senha'  # Substitua por sua senha ou senha de app
+def enviar_email(com_destinatario, arquivo_anexo, from_email, from_password):
     subject = 'Calculadora de Imposto de Renda da Família'
     
     # Configuração da mensagem
@@ -74,25 +73,30 @@ def main():
     num_pessoas = int(input("Digite o número de pessoas na família: "))
     rendas = []
     impostos = []
+    nomes = []
     
     for i in range(num_pessoas):
-        renda_anual = float(input(f"Digite a renda anual da pessoa {i+1}: R$ "))
+        nome = input(f"Digite o nome da pessoa {i+1}: ")
+        renda_anual = float(input(f"Digite a renda anual de {nome}: R$ "))
         imposto = calcular_imposto_renda(renda_anual)
         rendas.append(renda_anual)
         impostos.append(imposto)
-        print(f"O imposto de renda devido pela pessoa {i+1} é: R$ {imposto:.2f}")
+        nomes.append(nome)
+        print(f"O imposto de renda devido por {nome} é: R$ {imposto:.2f}")
     
     imposto_total = sum(impostos)
     print(f"O imposto total da família é: R$ {imposto_total:.2f}")
     
     # Gerar e mostrar o gráfico de pizza
-    gerar_grafico_pizza(rendas, impostos)
+    gerar_grafico_pizza(nomes, impostos)
     
     # Perguntar se o usuário deseja enviar o gráfico por e-mail
     enviar = input("Deseja enviar o gráfico por e-mail? (s/n): ").strip().lower()
     if enviar == 's':
         email = input("Digite seu e-mail para receber o gráfico: ")
-        enviar_email(email, 'grafico_imposto_renda_familia.png')
+        from_email = input("Digite o seu e-mail de envio: ")
+        from_password = getpass.getpass("Digite sua senha (não será exibida): ")
+        enviar_email(email, 'grafico_imposto_renda_familia.png', from_email, from_password)
         print(f"E-mail enviado para {email}")
     else:
         print("Gráfico não enviado.")
